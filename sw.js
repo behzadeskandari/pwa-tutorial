@@ -1,9 +1,9 @@
 const staticChacheName = "site-static";
+const dynamicChacheName = "dynamic-static";
 const assets = [
     '/',
     '/index.html',
-    '/about.html',
-    '/contact.html',
+    '/pages/fallback.html',
     '/js/app.js',
     '/js/ui.js',
     '/css/materialize.min.css',
@@ -13,6 +13,18 @@ const assets = [
     'https://fonts.googleapis.com/icon?family=Material+Icons',
     'https://fonts.gstatic.com/s/materialicons/v143/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2',
 ]
+
+const limitCacheSize = (name, size) => {
+    caches.open(name).then(cache => {
+        cache.keys().then(keys => {
+            if(keys.length > size) {
+                cache.delete(keys[0]).then(limitCacheSize(name, size))
+            }
+        })
+    })
+}
+
+
 self.addEventListener('install', function(event) {
     console.log('Service Worker Installed',event);
     event.waitUntil(
@@ -30,7 +42,7 @@ self.addEventListener('activate', function(event) {
         caches.keys().then(keys => {
             console.log('keys',keys);
             return Promise.all(keys
-                .filter(key => key !== staticChacheName)
+                .filter(key => key !== staticChacheName && key !== dynamicChacheName)
                 .map(key => caches.delete(key))
             )
         })
@@ -42,9 +54,20 @@ self.addEventListener('fetch', function(event) {
     console.log('Service Worker Fetched',event);
     event.respondWith(
         caches.match(event.request).then(function(response) {
-            return response || fetch(event.request)
+            return response || fetch(event.request).then(fetchResponse => {
+                return caches.open(dynamicChacheName).then(cache => {
+                    cache.put(event.request.url, fetchResponse.clone());
+                    limitCacheSize(dynamicChacheName, 15);
+                    return fetchResponse;
+                })
+            })
+        }).catch(() => {
+            if(event.request.url.indexOf('.html') > -1) {
+                return caches.match('/pages/fallback.html');
+            }
         })
     )
+
 })
 
 

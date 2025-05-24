@@ -4,10 +4,11 @@ if('serviceWorker' in navigator) {
             // Subscribe user to push
         reg.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array('<VAPID_PUBLIC_KEY>')
+            applicationServerKey: urlBase64ToUint8Array('BKNbFZij6XgGCsoqenEHK87QSFu84ZBf6ZscJWMcHm3lOEU5gixg3_Nj6viE-5BglCN5kYDXj6Xs178peYrAU58')
         }).then(subscription => {
             console.log('Push subscription:', subscription);
             // Send subscription to your backend
+            //:TODO Localhost or domain needs to be added 
             fetch('/api/notifications/subscribe', {
                 method: 'POST',
                 headers: {
