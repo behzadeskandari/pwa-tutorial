@@ -20,7 +20,9 @@ nav a span{
 nav .sidenav-trigger{
   margin: 0;
 }
-
+::selection{
+  background: var(--secondary);
+}
 /* recipe styles */
 .recipes{
   margin-top: 20px;
