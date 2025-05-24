@@ -26,6 +26,15 @@ self.addEventListener('install', function(event) {
 
 self.addEventListener('activate', function(event) {
     console.log('Service Worker Activated',event);
+    event.waitUntil(
+        caches.keys().then(keys => {
+            console.log('keys',keys);
+            return Promise.all(keys
+                .filter(key => key !== staticChacheName)
+                .map(key => caches.delete(key))
+            )
+        })
+    )
 })
 
 
@@ -39,3 +48,14 @@ self.addEventListener('fetch', function(event) {
 })
 
 
+self.addEventListener('push', function(event) {
+    const data = event.data.json();
+    const options = {
+        body: data.body,
+        icon: 'img/dish.png',
+        badge: 'img/dish.png'
+    };
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
